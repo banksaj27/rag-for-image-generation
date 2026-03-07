@@ -118,47 +118,65 @@ def get_coordinates_tool(place: str) -> str:
 
 
 @tool
-def street_view_image_tool(coordinates: str, angle: float) -> str:
-    """Return a Google Street View Static API image URL for coordinates and heading angle.
-
-    Args:
-        coordinates: Comma-separated latitude and longitude, e.g. "37.4275,-122.1697"
-        angle: Camera heading in degrees, typically 0-360
-
-    Returns:
-        A URL string for the Street View static image.
+def street_view_image_tool(coordinates: str) -> dict:
     """
-    # Basic validation
+    Return four Google Street View Static API image URLs, with the camera
+    shifted slightly away from the target coordinate in each direction.
+    """
+
     parts = [p.strip() for p in coordinates.split(",")]
     if len(parts) != 2:
-        raise ValueError("coordinates must be a string like '37.4275,-122.1697'")
+        raise ValueError("coordinates must be 'lat,lng'")
 
     try:
         lat = float(parts[0])
         lng = float(parts[1])
     except ValueError as e:
-        raise ValueError("coordinates must contain valid numeric latitude and longitude") from e
-
-    if not (-90 <= lat <= 90):
-        raise ValueError("latitude must be between -90 and 90")
-    if not (-180 <= lng <= 180):
-        raise ValueError("longitude must be between -180 and 180")
-
-    # Normalize heading
-    heading = angle % 360
-
-    params = {
-        "size": "640x640",
-        "location": f"{lat},{lng}",
-        "heading": heading,
-        "fov": 90,
-        "pitch": 0,
-        "return_error_code": "true",
-        "key": "AIzaSyA9b4ZC41Z5sDGVbsN2-B5xaJ5cMMflR_Y",
-    }
+        raise ValueError("coordinates must contain valid numbers") from e
 
     base_url = "https://maps.googleapis.com/maps/api/streetview"
-    return f"{base_url}?{urlencode(params)}"
+
+    # Roughly ~20 meters-ish
+    shift = 0.001
+
+    views = {
+        "north_view": {
+            "lat": lat - shift,   # move south
+            "lng": lng,
+            "heading": 0,         # look north
+        },
+        "east_view": {
+            "lat": lat,
+            "lng": lng - shift,   # move west
+            "heading": 90,        # look east
+        },
+        "south_view": {
+            "lat": lat + shift,   # move north
+            "lng": lng,
+            "heading": 180,       # look south
+        },
+        "west_view": {
+            "lat": lat,
+            "lng": lng + shift,   # move east
+            "heading": 270,       # look west
+        },
+    }
+
+    urls = {}
+
+    for direction, data in views.items():
+        params = {
+            "size": "640x640",
+            "location": f"{data['lat']},{data['lng']}",
+            "heading": data["heading"],
+            "fov": 90,
+            "pitch": 0,
+            "return_error_code": "true",
+            "key": "AIzaSyA9b4ZC41Z5sDGVbsN2-B5xaJ5cMMflR_Y",
+        }
+        urls[direction] = f"{base_url}?{urlencode(params)}"
+
+    return urls
 
 
 
@@ -176,6 +194,7 @@ def call_llm(messages: list[BaseMessage]):
                     "You are a helpful assistant. "
                     "If the user asks for a location, landmark, venue, or place coordinates, "
                     "use the get_coordinates_tool tool. "
+                    "If the user asks for an image of a place, and has already given coordinates, use the street_view_image_tool tool. "
                     "If no tool is needed, answer normally."
                 )
             )
@@ -213,6 +232,14 @@ def agent(messages: list[BaseMessage]):
 human_input = input("What do you want to ask: ")
 
 messages = [HumanMessage(content=human_input)]
-for chunk in agent.stream(messages, stream_mode="updates"):
-    print(chunk)
-    print("\n")
+final_state = agent.invoke(messages)
+
+# The last message in the list is the assistant's final response
+final_response = final_state[-1].content
+
+print("\n--- Assistant Response ---")
+print(final_response)
+
+
+
+
