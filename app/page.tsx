@@ -459,6 +459,27 @@ export default function Home() {
               </div>
             </motion.form>
             )}
+
+            {phase === "idle" && (
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-white/50">Icon alignment preview:</span>
+                <div className="relative flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)]">
+                  <svg
+                    viewBox="0 0 24 24"
+                    className="h-5 w-5 translate-x-[-1px] fill-none stroke-amber-50"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M14 3h7v7" />
+                    <path d="M10 14L21 3" />
+                    <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+                  </svg>
+                </div>
+              </div>
+            )}
           </AnimatePresence>
 
           <AnimatePresence mode="wait">
@@ -515,7 +536,7 @@ export default function Home() {
                               : openImageInNewTab(nativeImageUrl)
                             : openPlaceholderInNewTab("IMAGE PLACEHOLDER A")
                         }
-                        className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-amber-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:-translate-x-0.5"
+                        className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-amber-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-[-1px]"
                         aria-label="Open image in new tab"
                         title="Open image in new tab"
                       >
@@ -559,7 +580,7 @@ export default function Home() {
                             : openImageInNewTab(ragImageUrl)
                           : openPlaceholderInNewTab("IMAGE PLACEHOLDER B")
                       }
-                      className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-cyan-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:-translate-x-0.5"
+                      className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-cyan-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-[-1px]"
                       aria-label="Open image B in new tab"
                       title="Open image B in new tab"
                     >
