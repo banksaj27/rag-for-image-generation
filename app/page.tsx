@@ -402,7 +402,7 @@ export default function Home() {
             transition={{ duration: 0.2 }}
             className="text-lg font-semibold tracking-[0.1em] text-white [text-shadow:0_0_10px_rgba(255,255,255,0.18)] sm:text-xl"
           >
-            {isCompleteView ? "Generation Complete" : "RAG for Image Generation"}
+            {isCompleteView ? "Generation Complete!" : "RAG for Image Generation"}
           </motion.h1>
         </AnimatePresence>
       </motion.div>
@@ -486,22 +486,22 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="flex w-full max-w-6xl flex-col items-center gap-6"
+                className="flex w-full max-w-7xl flex-col items-center gap-6"
               >
                 {error && (
                   <p className="text-center text-sm font-medium text-red-400">{error}</p>
                 )}
-                <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
-                  <div className="space-y-2">
+                <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2">
+                  <div className="flex flex-col items-center space-y-2">
                     <div className="text-center text-sm font-semibold tracking-[0.08em] text-amber-300">
                       Native
                     </div>
-                    <div className="relative flex aspect-square w-full min-h-[340px] max-h-[26rem] items-center justify-center overflow-hidden rounded border border-amber-300/33 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.12)_inset,0_0_16px_rgba(251,191,36,0.17),0_0_28px_rgba(139,61,255,0.12)]">
+                    <div className="relative flex w-full max-w-xl min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/33 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.12)_inset,0_0_16px_rgba(251,191,36,0.17),0_0_28px_rgba(139,61,255,0.12)] [&>img]:max-h-[520px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {nativeImageUrl ? (
                         <img
                           src={nativeImageUrl}
                           alt="Generated image"
-                          className="h-full w-full object-contain"
+                          className="block"
                         />
                       ) : (
                         <span>IMAGE PLACEHOLDER A</span>
@@ -536,16 +536,16 @@ export default function Home() {
                       </button>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="text-center text-sm font-semibold tracking-[0.08em] text-cyan-200">
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className="text-center text-sm font-bold tracking-[0.08em] text-cyan-200">
                       With RAG
                     </div>
-                    <div className="relative flex aspect-square w-full min-h-[340px] max-h-[26rem] items-center justify-center rounded border border-cyan-300/45 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.22)_inset,0_0_28px_rgba(34,211,238,0.32),0_0_52px_rgba(79,70,229,0.28)]">
+                    <div className="relative flex w-full max-w-xl min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/45 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.22)_inset,0_0_28px_rgba(34,211,238,0.32),0_0_52px_rgba(79,70,229,0.28)] [&>img]:max-h-[520px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {ragImageUrl ? (
                         <img
                           src={ragImageUrl}
                           alt="Generated image with retrieved context"
-                          className="h-full w-full object-contain"
+                          className="block"
                         />
                       ) : (
                         <span>IMAGE PLACEHOLDER B</span>

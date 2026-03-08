@@ -1,21 +1,25 @@
 import { GoogleGenAI, Modality } from "@google/genai";
 
-const apiKey = process.env.GOOGLE_API_KEY;
+const PROJECT_ID = "144906959675";
+const LOCATION = "us-central1";
 
-function getClient() {
-  if (!apiKey || apiKey.trim() === "") {
-    throw new Error("GOOGLE_API_KEY is missing or empty");
-  }
-  return new GoogleGenAI({ apiKey, apiVersion: "v1beta" });
+function getClient(): GoogleGenAI {
+  return new GoogleGenAI({
+    vertexai: true,
+    project: PROJECT_ID,
+    location: LOCATION,
+    apiVersion: "v1beta",
+  });
 }
 
 /**
- * Generates an image from a text prompt using Gemini image preview.
+ * Generates an image from a text prompt using Vertex AI Gemini.
+ * Uses Application Default Credentials (ADC) - run `gcloud auth application-default login`.
  * Returns a base64 data URL (data:image/png;base64,...).
  */
 export async function generateTextToImage(prompt: string): Promise<string> {
   const client = getClient();
-  const candidateModels = ["gemini-3.1-flash-image-preview"];
+  const candidateModels = ["gemini-3.1-flash-image-preview", "gemini-3.1-flash-image"];
   const promptAttempts = [
     prompt,
     [
@@ -46,7 +50,6 @@ export async function generateTextToImage(prompt: string): Promise<string> {
       } catch (error) {
         lastError = error;
         const message = error instanceof Error ? error.message.toLowerCase() : "";
-        // Keep trying when a model is unavailable for this account/region/version.
         if (
           message.includes("not found") ||
           message.includes("not supported") ||
@@ -61,7 +64,7 @@ export async function generateTextToImage(prompt: string): Promise<string> {
 
   if (lastError instanceof Error) {
     throw new Error(
-      `No Gemini image generation model is available for this API key/region. Last error: ${lastError.message}`
+      `No Gemini image generation model is available for this project/region. Last error: ${lastError.message}`
     );
   }
   throw new Error("No image data returned by any available Gemini model");

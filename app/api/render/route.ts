@@ -24,14 +24,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey || apiKey.trim() === "") {
-      return NextResponse.json(
-        { error: "GOOGLE_API_KEY is not configured" },
-        { status: 401 }
-      );
-    }
-
     const nativeImageUrl = await generateTextToImage(prompt);
 
     let ragImageUrl: string | null = null;
@@ -62,13 +54,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-
-    if (message.includes("GOOGLE_API_KEY") || message.toLowerCase().includes("api key")) {
-      return NextResponse.json(
-        { error: message },
-        { status: 401 }
-      );
-    }
 
     console.error("[api/render]", err);
     return NextResponse.json(
