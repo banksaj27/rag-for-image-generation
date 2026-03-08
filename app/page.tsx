@@ -459,27 +459,6 @@ export default function Home() {
               </div>
             </motion.form>
             )}
-
-            {phase === "idle" && (
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-white/50">Icon alignment preview:</span>
-                <div className="relative flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)]">
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-5 w-5 translate-x-0 fill-none stroke-amber-50"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M14 3h7v7" />
-                    <path d="M10 14L21 3" />
-                    <path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
-                  </svg>
-                </div>
-              </div>
-            )}
           </AnimatePresence>
 
           <AnimatePresence mode="wait">
