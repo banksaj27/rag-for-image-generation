@@ -34,7 +34,7 @@ GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", GOOGLE_API_KEY).stri
 search = TavilySearchResults(tavily_api_key=TAVILY_API_KEY)
 
 model = init_chat_model(
-    "gemini-2.5-flash",
+    "gemini-3.1-flash-image-preview",
     model_provider="google_genai",
     google_api_key=GOOGLE_API_KEY,
     temperature=0
