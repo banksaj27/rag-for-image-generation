@@ -41,12 +41,11 @@ function GlowLayer({
   opacityIdle: number;
 }) {
   const isActive = phase === targetPhase || (targetPhase === "idle" && phase === "complete");
-  const isBreathing =
-    isActive &&
-    (targetPhase === "idle" || targetPhase === "routing" || targetPhase === "rendering");
   const glowA = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.34 : 0.26})`;
   const glowB = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.2 : 0.14})`;
   const glowC = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.1 : 0.07})`;
+
+  const pulseOpacity = isActive && targetPhase === "idle" ? [0.64, 1, 0.64] : opacityIdle;
 
   return (
     <motion.div
@@ -54,10 +53,14 @@ function GlowLayer({
       style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       initial={false}
       animate={{
-        opacity: isBreathing ? [0.64, 1, 0.64] : isActive ? opacityIdle : 0,
+        opacity: isActive && targetPhase === "idle"
+          ? pulseOpacity
+          : isActive
+            ? opacityIdle
+            : 0,
       }}
       transition={
-        isBreathing
+        isActive && targetPhase === "idle"
           ? { duration: 8.2, repeat: Infinity, ease: [0.4, 0, 0.6, 1], times: [0, 0.5, 1] }
           : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
       }
@@ -70,13 +73,13 @@ function GlowLayer({
           transform: "translateZ(0)",
         }}
         animate={{
-          scale: isBreathing ? [1, 1.035, 1.075, 1.035, 1] : 1.02,
+          scale: isActive && targetPhase === "idle" ? [1, 1.035, 1.075, 1.035, 1] : 1.02,
         }}
         transition={{
           duration: 9,
-          repeat: isBreathing ? Infinity : 0,
+          repeat: Infinity,
           ease: [0.4, 0, 0.6, 1],
-          times: isBreathing ? [0, 0.25, 0.5, 0.75, 1] : undefined,
+          times: [0, 0.25, 0.5, 0.75, 1],
         }}
       />
       <motion.div
@@ -87,10 +90,15 @@ function GlowLayer({
           transform: "translateZ(0)",
         }}
         animate={{
-          opacity: isBreathing ? [0.24, 0.5, 0.68, 0.5, 0.24] : isActive ? 0.4 : 0,
+          opacity:
+            isActive && targetPhase === "idle"
+              ? [0.24, 0.5, 0.68, 0.5, 0.24]
+              : isActive
+                ? 0.4
+                : 0,
         }}
         transition={
-          isBreathing
+          isActive && targetPhase === "idle"
             ? { duration: 7.6, repeat: Infinity, ease: [0.4, 0, 0.6, 1], times: [0, 0.25, 0.5, 0.75, 1] }
             : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
         }
@@ -404,7 +412,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className="flex w-full max-w-3xl flex-col items-center gap-6"
+          className={`flex w-full flex-col items-center gap-6 ${phase === "complete" ? "max-w-[1540px]" : "max-w-3xl"}`}
         >
           <AnimatePresence mode="wait">
             {phase === "idle" && (
@@ -478,17 +486,17 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="flex w-full max-w-[1700px] flex-col items-center gap-6"
+                className="flex w-full max-w-[1540px] flex-col items-center gap-6"
               >
                 {error && (
                   <p className="text-center text-sm font-medium text-red-400">{error}</p>
                 )}
                 <div className="grid w-full grid-cols-1 gap-10 sm:grid-cols-2">
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="text-center text-sm font-semibold tracking-[0.08em] text-amber-300">
+                    <div className="text-center text-sm font-normal tracking-[0.08em] text-amber-300">
                       Native
                     </div>
-                    <div className="relative flex w-full max-w-[860px] min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/45 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.2)_inset,0_0_26px_rgba(251,191,36,0.3),0_0_52px_rgba(139,61,255,0.24)] [&>img]:max-h-[780px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[749px] min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/45 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.2)_inset,0_0_26px_rgba(251,191,36,0.3),0_0_52px_rgba(139,61,255,0.24)] [&>img]:max-h-[676px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {nativeImageUrl ? (
                         <img
                           src={nativeImageUrl}
@@ -532,7 +540,7 @@ export default function Home() {
                     <div className="text-center text-sm font-extrabold tracking-[0.08em] text-cyan-100">
                       With RAG
                     </div>
-                    <div className="relative flex w-full max-w-[860px] min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/55 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.28)_inset,0_0_36px_rgba(34,211,238,0.42),0_0_70px_rgba(79,70,229,0.34)] [&>img]:max-h-[780px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[749px] min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/55 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.28)_inset,0_0_36px_rgba(34,211,238,0.42),0_0_70px_rgba(79,70,229,0.34)] [&>img]:max-h-[676px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {ragImageUrl ? (
                         <img
                           src={ragImageUrl}
