@@ -515,7 +515,7 @@ export default function Home() {
                               : openImageInNewTab(nativeImageUrl)
                             : openPlaceholderInNewTab("IMAGE PLACEHOLDER A")
                         }
-                        className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-amber-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-0.5"
+                        className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-amber-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:-translate-x-0.5"
                         aria-label="Open image in new tab"
                         title="Open image in new tab"
                       >
@@ -559,7 +559,7 @@ export default function Home() {
                             : openImageInNewTab(ragImageUrl)
                           : openPlaceholderInNewTab("IMAGE PLACEHOLDER B")
                       }
-                      className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-cyan-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-0.5"
+                      className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-cyan-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:-translate-x-0.5"
                       aria-label="Open image B in new tab"
                       title="Open image B in new tab"
                     >
