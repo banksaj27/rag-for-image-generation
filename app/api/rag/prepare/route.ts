@@ -66,6 +66,30 @@ function runMainRag(prompt: string): Promise<{ output: string }> {
   });
 }
 
+async function runModalRag(prompt: string): Promise<{ output: string }> {
+  const url = process.env.MODAL_RAG_PREPARE_URL;
+  if (!url || typeof url !== "string" || !url.trim()) {
+    throw new Error("MODAL_RAG_PREPARE_URL is not set");
+  }
+  const res = await fetch(url.trim(), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ prompt }),
+  });
+  const data = (await res.json().catch(() => null)) as
+    | { success?: boolean; ragOutput?: string; error?: string }
+    | null;
+  if (!res.ok) {
+    const msg = data?.error ?? `Modal request failed: ${res.status}`;
+    throw new Error(msg);
+  }
+  if (!data || data.success !== true) {
+    throw new Error(data?.error ?? "Modal returned failure");
+  }
+  const output = typeof data.ragOutput === "string" ? data.ragOutput : "";
+  return { output };
+}
+
 export async function POST(request: NextRequest) {
   let body: { prompt?: string };
   try {
@@ -81,7 +105,10 @@ export async function POST(request: NextRequest) {
 
   try {
     console.log(`[rag/prepare] request received prompt_len=${prompt.length}`);
-    const result = await runMainRag(prompt);
+    const result =
+      process.env.MODAL_RAG_PREPARE_URL?.trim()
+        ? await runModalRag(prompt)
+        : await runMainRag(prompt);
     console.log(`[rag/prepare] success output_len=${result.output.length}`);
     return NextResponse.json({
       success: true,

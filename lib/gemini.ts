@@ -87,7 +87,8 @@ function extractImageDataUrl(response: unknown): string | null {
     for (const part of parts) {
       const inline = part.inlineData ?? part.inline_data;
       if (inline?.data) {
-        const mimeType = inline.mimeType ?? inline.mime_type ?? "image/png";
+        const m = inline as { mimeType?: string; mime_type?: string };
+        const mimeType = m.mimeType ?? m.mime_type ?? "image/png";
         return `data:${mimeType};base64,${inline.data}`;
       }
       if (part.inlineDataBase64) {
