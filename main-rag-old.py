@@ -18,13 +18,24 @@ import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 
-search = TavilySearchResults(tavily_api_key='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')
-BROWSERBASE_API_KEY = "bb_live_4qYZKqZQMkL6nj2gPtF7alcA6Ak"
+def _require_env(name: str) -> str:
+    value = os.environ.get(name, "").strip()
+    if not value:
+        raise ValueError(f"Missing required environment variable: {name}")
+    return value
+
+
+TAVILY_API_KEY = _require_env("TAVILY_API_KEY")
+BROWSERBASE_API_KEY = _require_env("BROWSERBASE_API_KEY")
+GOOGLE_API_KEY = _require_env("GOOGLE_API_KEY")
+GOOGLE_MAPS_API_KEY = os.environ.get("GOOGLE_MAPS_API_KEY", GOOGLE_API_KEY).strip() or GOOGLE_API_KEY
+
+search = TavilySearchResults(tavily_api_key=TAVILY_API_KEY)
 
 model = init_chat_model(
     "gemini-2.5-flash",
     model_provider="google_genai",
-    google_api_key="AIzaSyA9b4ZC41Z5sDGVbsN2-B5xaJ5cMMflR_Y",
+    google_api_key=GOOGLE_API_KEY,
     temperature=0
 )
 
@@ -915,7 +926,7 @@ def street_view_image_tool(coordinates: str) -> dict:
             "fov": 90,
             "pitch": 0,
             "return_error_code": "true",
-            "key": "AIzaSyA9b4ZC41Z5sDGVbsN2-B5xaJ5cMMflR_Y",
+            "key": GOOGLE_MAPS_API_KEY,
         }
         urls[direction] = f"{base_url}?{urlencode(params)}"
 
