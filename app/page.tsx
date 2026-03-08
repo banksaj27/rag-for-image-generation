@@ -496,7 +496,7 @@ export default function Home() {
                     <div className="text-center text-sm font-semibold tracking-[0.08em] text-amber-300">
                       Native
                     </div>
-                    <div className="relative flex w-full max-w-xl min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/33 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.12)_inset,0_0_16px_rgba(251,191,36,0.17),0_0_28px_rgba(139,61,255,0.12)] [&>img]:max-h-[520px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[750px] min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/33 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.12)_inset,0_0_16px_rgba(251,191,36,0.17),0_0_28px_rgba(139,61,255,0.12)] [&>img]:max-h-[676px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {nativeImageUrl ? (
                         <img
                           src={nativeImageUrl}
@@ -540,7 +540,7 @@ export default function Home() {
                     <div className="text-center text-sm font-bold tracking-[0.08em] text-cyan-200">
                       With RAG
                     </div>
-                    <div className="relative flex w-full max-w-xl min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/45 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.22)_inset,0_0_28px_rgba(34,211,238,0.32),0_0_52px_rgba(79,70,229,0.28)] [&>img]:max-h-[520px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[750px] min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/45 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.22)_inset,0_0_28px_rgba(34,211,238,0.32),0_0_52px_rgba(79,70,229,0.28)] [&>img]:max-h-[676px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {ragImageUrl ? (
                         <img
                           src={ragImageUrl}
