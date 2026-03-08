@@ -41,11 +41,11 @@ function GlowLayer({
   opacityIdle: number;
 }) {
   const isActive = phase === targetPhase || (targetPhase === "idle" && phase === "complete");
+  const isIdlePulse = isActive && targetPhase === "idle";
+  const isProgressPulse = isActive && (targetPhase === "routing" || targetPhase === "rendering");
   const glowA = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.34 : 0.26})`;
   const glowB = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.2 : 0.14})`;
   const glowC = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.1 : 0.07})`;
-
-  const pulseOpacity = isActive && targetPhase === "idle" ? [0.64, 1, 0.64] : opacityIdle;
 
   return (
     <motion.div
@@ -53,16 +53,20 @@ function GlowLayer({
       style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       initial={false}
       animate={{
-        opacity: isActive && targetPhase === "idle"
-          ? pulseOpacity
-          : isActive
-            ? opacityIdle
-            : 0,
+        opacity: isIdlePulse
+          ? [0.64, 1, 0.64]
+          : isProgressPulse
+            ? [0.58, 0.88, 0.58]
+            : isActive
+              ? opacityIdle
+              : 0,
       }}
       transition={
-        isActive && targetPhase === "idle"
+        isIdlePulse
           ? { duration: 8.2, repeat: Infinity, ease: [0.4, 0, 0.6, 1], times: [0, 0.5, 1] }
-          : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
+          : isProgressPulse
+            ? { duration: 7.2, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }
+            : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
       }
     >
       <motion.div
@@ -73,13 +77,17 @@ function GlowLayer({
           transform: "translateZ(0)",
         }}
         animate={{
-          scale: isActive && targetPhase === "idle" ? [1, 1.035, 1.075, 1.035, 1] : 1.02,
+          scale: isIdlePulse
+            ? [1, 1.035, 1.075, 1.035, 1]
+            : isProgressPulse
+              ? [1, 1.02, 1.048, 1.02, 1]
+              : 1.02,
         }}
         transition={{
-          duration: 9,
-          repeat: Infinity,
-          ease: [0.4, 0, 0.6, 1],
-          times: [0, 0.25, 0.5, 0.75, 1],
+          duration: isProgressPulse ? 7.2 : 9,
+          repeat: isProgressPulse || isIdlePulse ? Infinity : 0,
+          ease: isProgressPulse ? "easeInOut" : [0.4, 0, 0.6, 1],
+          times: isProgressPulse || isIdlePulse ? [0, 0.25, 0.5, 0.75, 1] : undefined,
         }}
       />
       <motion.div
@@ -90,17 +98,20 @@ function GlowLayer({
           transform: "translateZ(0)",
         }}
         animate={{
-          opacity:
-            isActive && targetPhase === "idle"
-              ? [0.24, 0.5, 0.68, 0.5, 0.24]
+          opacity: isIdlePulse
+            ? [0.24, 0.5, 0.68, 0.5, 0.24]
+            : isProgressPulse
+              ? [0.2, 0.42, 0.58, 0.42, 0.2]
               : isActive
                 ? 0.4
                 : 0,
         }}
         transition={
-          isActive && targetPhase === "idle"
+          isIdlePulse
             ? { duration: 7.6, repeat: Infinity, ease: [0.4, 0, 0.6, 1], times: [0, 0.25, 0.5, 0.75, 1] }
-            : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
+            : isProgressPulse
+              ? { duration: 7.2, repeat: Infinity, ease: "easeInOut", times: [0, 0.25, 0.5, 0.75, 1] }
+              : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
         }
       />
     </motion.div>
@@ -486,17 +497,17 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="flex w-full max-w-7xl flex-col items-center gap-6"
+                className="flex w-full max-w-[1700px] flex-col items-center gap-6"
               >
                 {error && (
                   <p className="text-center text-sm font-medium text-red-400">{error}</p>
                 )}
-                <div className="grid w-full grid-cols-1 gap-8 sm:grid-cols-2">
+                <div className="grid w-full grid-cols-1 gap-10 sm:grid-cols-2">
                   <div className="flex flex-col items-center space-y-2">
                     <div className="text-center text-sm font-semibold tracking-[0.08em] text-amber-300">
                       Native
                     </div>
-                    <div className="relative flex w-full max-w-[750px] min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/33 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.12)_inset,0_0_16px_rgba(251,191,36,0.17),0_0_28px_rgba(139,61,255,0.12)] [&>img]:max-h-[676px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[860px] min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/45 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.2)_inset,0_0_26px_rgba(251,191,36,0.3),0_0_52px_rgba(139,61,255,0.24)] [&>img]:max-h-[780px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {nativeImageUrl ? (
                         <img
                           src={nativeImageUrl}
@@ -515,7 +526,7 @@ export default function Home() {
                               : openImageInNewTab(nativeImageUrl)
                             : openPlaceholderInNewTab("IMAGE PLACEHOLDER A")
                         }
-                        className="absolute right-[3px] top-2 h-8 w-8 bg-transparent text-amber-100/75 transition hover:text-amber-50"
+                        className="absolute right-[6px] top-[6px] h-8 w-8 rounded-md border border-white/45 bg-black/72 p-1 text-amber-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/82 hover:text-white"
                         aria-label="Open image in new tab"
                         title="Open image in new tab"
                       >
@@ -537,10 +548,10 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="text-center text-sm font-bold tracking-[0.08em] text-cyan-200">
+                    <div className="text-center text-sm font-extrabold tracking-[0.08em] text-cyan-100">
                       With RAG
                     </div>
-                    <div className="relative flex w-full max-w-[750px] min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/45 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.22)_inset,0_0_28px_rgba(34,211,238,0.32),0_0_52px_rgba(79,70,229,0.28)] [&>img]:max-h-[676px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[860px] min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/55 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.28)_inset,0_0_36px_rgba(34,211,238,0.42),0_0_70px_rgba(79,70,229,0.34)] [&>img]:max-h-[780px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {ragImageUrl ? (
                         <img
                           src={ragImageUrl}
@@ -559,7 +570,7 @@ export default function Home() {
                             : openImageInNewTab(ragImageUrl)
                           : openPlaceholderInNewTab("IMAGE PLACEHOLDER B")
                       }
-                      className="absolute right-[3px] top-2 h-8 w-8 bg-transparent text-cyan-100/75 transition hover:text-cyan-50"
+                      className="absolute right-[6px] top-[6px] h-8 w-8 rounded-md border border-white/45 bg-black/72 p-1 text-cyan-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/82 hover:text-white"
                       aria-label="Open image B in new tab"
                       title="Open image B in new tab"
                     >
