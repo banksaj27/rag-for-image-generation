@@ -412,7 +412,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35 }}
-          className={`flex w-full flex-col items-center gap-6 ${phase === "complete" ? "max-w-[1364px]" : "max-w-3xl"}`}
+          className={`flex w-full flex-col items-center gap-6 ${phase === "complete" ? "max-w-[1298px]" : "max-w-3xl"}`}
         >
           <AnimatePresence mode="wait">
             {phase === "idle" && (
@@ -486,7 +486,7 @@ export default function Home() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                className="flex w-full max-w-[1364px] flex-col items-center gap-6"
+                className="flex w-full max-w-[1298px] flex-col items-center gap-6"
               >
                 {error && (
                   <p className="text-center text-sm font-medium text-red-400">{error}</p>
@@ -496,7 +496,7 @@ export default function Home() {
                     <div className="text-center text-sm font-normal tracking-[0.08em] text-amber-300">
                       Native
                     </div>
-                    <div className="relative flex w-full max-w-[662px] min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/45 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.2)_inset,0_0_26px_rgba(251,191,36,0.3),0_0_52px_rgba(139,61,255,0.24)] [&>img]:max-h-[598px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[629px] min-w-0 items-center justify-center overflow-hidden rounded border border-amber-300/45 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.2)_inset,0_0_26px_rgba(251,191,36,0.3),0_0_52px_rgba(139,61,255,0.24)] [&>img]:max-h-[568px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {nativeImageUrl ? (
                         <img
                           src={nativeImageUrl}
@@ -515,7 +515,7 @@ export default function Home() {
                               : openImageInNewTab(nativeImageUrl)
                             : openPlaceholderInNewTab("IMAGE PLACEHOLDER A")
                         }
-                        className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-amber-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-px"
+                        className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-amber-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-0.5"
                         aria-label="Open image in new tab"
                         title="Open image in new tab"
                       >
@@ -540,7 +540,7 @@ export default function Home() {
                     <div className="text-center text-sm font-extrabold tracking-[0.08em] text-cyan-100">
                       With RAG
                     </div>
-                    <div className="relative flex w-full max-w-[662px] min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/55 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.28)_inset,0_0_36px_rgba(34,211,238,0.42),0_0_70px_rgba(79,70,229,0.34)] [&>img]:max-h-[598px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
+                    <div className="relative flex w-full max-w-[629px] min-w-0 items-center justify-center overflow-hidden rounded border border-cyan-300/55 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.28)_inset,0_0_36px_rgba(34,211,238,0.42),0_0_70px_rgba(79,70,229,0.34)] [&>img]:max-h-[568px] [&>img]:w-auto [&>img]:max-w-full [&>img]:object-contain">
                       {ragImageUrl ? (
                         <img
                           src={ragImageUrl}
@@ -559,7 +559,7 @@ export default function Home() {
                             : openImageInNewTab(ragImageUrl)
                           : openPlaceholderInNewTab("IMAGE PLACEHOLDER B")
                       }
-                      className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-cyan-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-px"
+                      className="absolute right-[6px] top-[6px] flex h-8 w-8 items-center justify-center rounded-md border border-white/45 bg-black/35 p-1 text-cyan-50 shadow-[0_0_0_1px_rgba(0,0,0,0.35)_inset,0_0_10px_rgba(0,0,0,0.45)] transition hover:border-white/70 hover:bg-black/45 hover:text-white [&>svg]:translate-x-0.5"
                       aria-label="Open image B in new tab"
                       title="Open image B in new tab"
                     >
