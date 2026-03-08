@@ -15,7 +15,7 @@ function getClient() {
  */
 export async function generateTextToImage(prompt: string): Promise<string> {
   const client = getClient();
-  const candidateModels = ["gemini-2.5-flash-image"];
+  const candidateModels = ["gemini-2.5-flash-image-preview-05-20"];
   const promptAttempts = [
     prompt,
     [
