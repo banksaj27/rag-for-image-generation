@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateTextToImage } from "@/lib/gemini";
 
+const MAX_RAG_CONTEXT_CHARS = 6000;
+
 export async function POST(request: NextRequest) {
-  let body: { prompt?: string };
+  let body: { prompt?: string; ragContext?: string };
   try {
     body = await request.json();
   } catch {
@@ -13,6 +15,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const prompt = typeof body?.prompt === "string" ? body.prompt.trim() : "";
+    const ragContext = typeof body?.ragContext === "string" ? body.ragContext.trim() : "";
 
     if (!prompt) {
       return NextResponse.json(
@@ -31,9 +34,31 @@ export async function POST(request: NextRequest) {
 
     const nativeImageUrl = await generateTextToImage(prompt);
 
+    let ragImageUrl: string | null = null;
+    let ragError: string | null = null;
+    if (ragContext) {
+      const trimmedContext = ragContext.slice(0, MAX_RAG_CONTEXT_CHARS);
+      try {
+        ragImageUrl = await generateTextToImage(
+          [
+            "Generate an image based on the user prompt and retrieved context.",
+            "Prioritize factual layout and landmark accuracy.",
+            "",
+            `User prompt:\n${prompt}`,
+            "",
+            `Retrieved context:\n${trimmedContext}`,
+          ].join("\n")
+        );
+      } catch (ragErr) {
+        ragError = ragErr instanceof Error ? ragErr.message : "RAG image generation failed";
+        console.error("[api/render][rag]", ragErr);
+      }
+    }
+
     return NextResponse.json({
       nativeImageUrl,
-      ragImageUrl: null,
+      ragImageUrl,
+      ragError,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

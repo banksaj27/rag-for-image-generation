@@ -13,7 +13,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased">
+      <body className="relative min-h-screen font-sans antialiased">
+        <div aria-hidden className="pointer-events-none fixed inset-0 -z-10">
+          <div className="tech-bg-gradients absolute inset-0" />
+          <div className="tech-bg-dots absolute inset-0" />
+          <div className="tech-bg-layer absolute inset-0" />
+          <div className="tech-noise absolute inset-0" />
+          <div className="tech-vignette absolute inset-0" />
+        </div>
         {children}
       </body>
     </html>

@@ -50,7 +50,7 @@ search = TavilySearchResults(tavily_api_key='tvly-dev-2AeGrX-LwzNBspVjkR8c8SNtyI
 BROWSERBASE_API_KEY = "bb_live_4qYZKqZQMkL6nj2gPtF7alcA6Ak"
 
 model = init_chat_model(
-    "gemini-2.5-flash", 
+    "gemini-3.1-flash-image-preview", 
     model_provider="google_genai",
     google_api_key="AIzaSyA9b4ZC41Z5sDGVbsN2-B5xaJ5cMMflR_Y",
     temperature=0

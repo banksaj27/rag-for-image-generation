@@ -1,2 +1,9 @@
-import langchain-google-genai
+langchain
+langchain-core
+langchain-community
+langchain-google-genai
+langgraph
+browserbase
+playwright
+requests
 

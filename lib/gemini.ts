@@ -10,59 +10,52 @@ function getClient() {
 }
 
 /**
- * Generates an image from a text prompt using Gemini 2.0 Flash experimental.
+ * Generates an image from a text prompt using Gemini image preview.
  * Returns a base64 data URL (data:image/png;base64,...).
  */
 export async function generateTextToImage(prompt: string): Promise<string> {
   const client = getClient();
-  const candidateModels = [
-    "gemini-2.5-flash-image",
-    "gemini-3.1-flash-image-preview",
-    "gemini-3-pro-image-preview",
-    "gemini-2.0-flash-exp-image-generation",
+  const candidateModels = ["gemini-3.1-flash-image-preview"];
+  const promptAttempts = [
+    prompt,
+    [
+      "Generate one image only.",
+      "Do not return text in the response body.",
+      "",
+      prompt,
+    ].join("\n"),
   ];
 
   let lastError: unknown = null;
 
   for (const model of candidateModels) {
-    try {
-      const response = await client.models.generateContent({
-        model,
-        contents: prompt,
-        config: {
-          responseModalities: [Modality.TEXT, Modality.IMAGE],
-        },
-      });
+    for (const attemptedPrompt of promptAttempts) {
+      try {
+        const response = await client.models.generateContent({
+          model,
+          contents: attemptedPrompt,
+          config: {
+            responseModalities: [Modality.TEXT, Modality.IMAGE],
+          },
+        });
 
-      const parts = response.candidates?.[0]?.content?.parts;
-      if (!parts?.length) {
-        continue;
-      }
-
-      for (const part of parts) {
-        const p = part as {
-          inlineData?: { data?: string; mimeType?: string };
-          inline_data?: { data?: string; mime_type?: string };
-        };
-        const inline = p.inlineData ?? p.inline_data;
-        if (inline?.data) {
-          const m = inline as { mimeType?: string; mime_type?: string };
-          const mimeType = m.mimeType ?? m.mime_type ?? "image/png";
-          return `data:${mimeType};base64,${inline.data}`;
+        const dataUrl = extractImageDataUrl(response);
+        if (dataUrl) {
+          return dataUrl;
         }
+      } catch (error) {
+        lastError = error;
+        const message = error instanceof Error ? error.message.toLowerCase() : "";
+        // Keep trying when a model is unavailable for this account/region/version.
+        if (
+          message.includes("not found") ||
+          message.includes("not supported") ||
+          message.includes("404")
+        ) {
+          continue;
+        }
+        throw error;
       }
-    } catch (error) {
-      lastError = error;
-      const message = error instanceof Error ? error.message.toLowerCase() : "";
-      // Keep trying when a model is unavailable for this account/region/version.
-      if (
-        message.includes("not found") ||
-        message.includes("not supported") ||
-        message.includes("404")
-      ) {
-        continue;
-      }
-      throw error;
     }
   }
 
@@ -72,4 +65,36 @@ export async function generateTextToImage(prompt: string): Promise<string> {
     );
   }
   throw new Error("No image data returned by any available Gemini model");
+}
+
+function extractImageDataUrl(response: unknown): string | null {
+  const r = response as {
+    candidates?: Array<{
+      content?: {
+        parts?: Array<{
+          inlineData?: { data?: string; mimeType?: string };
+          inline_data?: { data?: string; mime_type?: string };
+          inlineDataBase64?: string;
+          mimeType?: string;
+        }>;
+      };
+    }>;
+  };
+
+  const candidates = r.candidates ?? [];
+  for (const candidate of candidates) {
+    const parts = candidate.content?.parts ?? [];
+    for (const part of parts) {
+      const inline = part.inlineData ?? part.inline_data;
+      if (inline?.data) {
+        const mimeType = inline.mimeType ?? inline.mime_type ?? "image/png";
+        return `data:${mimeType};base64,${inline.data}`;
+      }
+      if (part.inlineDataBase64) {
+        const mimeType = part.mimeType ?? "image/png";
+        return `data:${mimeType};base64,${part.inlineDataBase64}`;
+      }
+    }
+  }
+  return null;
 }

@@ -2,6 +2,7 @@
 
 import confetti from "canvas-confetti";
 import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 type Phase = "idle" | "routing" | "rendering" | "complete";
@@ -122,14 +123,14 @@ function AmbientGlow({ phase }: { phase: Phase }) {
 
 const LOADING_TEXT_DELAY_MS = 550;
 
-const ROUTING_DURATION_MS = 4000;
-
 export default function Home() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [prompt, setPrompt] = useState("");
   const [showLoadingText, setShowLoadingText] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [nativeImageUrl, setNativeImageUrl] = useState<string | null>(null);
+  const [ragImageUrl, setRagImageUrl] = useState<string | null>(null);
+  const [ragContext, setRagContext] = useState("");
   const [error, setError] = useState<string | null>(null);
   const confettiFired = useRef(false);
   const confettiTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -138,8 +139,38 @@ export default function Home() {
 
   useEffect(() => {
     if (phase === "routing") {
-      const toRendering = setTimeout(() => setPhase("rendering"), ROUTING_DURATION_MS);
-      return () => clearTimeout(toRendering);
+      const controller = new AbortController();
+      (async () => {
+        const p = currentPromptRef.current;
+        try {
+          const res = await fetch("/api/rag/prepare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ prompt: p }),
+            signal: controller.signal,
+          });
+          const data = await res.json().catch(() => null);
+          if (data && data.success === true) {
+            const nextRagContext = typeof data.ragOutput === "string" ? data.ragOutput : "";
+            setRagContext(nextRagContext);
+          } else {
+            setRagContext("");
+          }
+          if (data && data.success === false) {
+            console.warn("[rag/prepare] failed", data.error);
+          }
+        } catch (e) {
+          if ((e as Error).name !== "AbortError") {
+            console.error("[rag/prepare]", e);
+            setRagContext("");
+          }
+        } finally {
+          if (!controller.signal.aborted) {
+            setPhase("rendering");
+          }
+        }
+      })();
+      return () => controller.abort();
     }
 
     if (phase === "rendering") {
@@ -151,19 +182,21 @@ export default function Home() {
           const res = await fetch("/api/render", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ prompt: p }),
+            body: JSON.stringify({ prompt: p, ragContext }),
             signal: controller.signal,
           });
           const data = await res.json();
           if (!res.ok) {
             setError(data?.error ?? `Error ${res.status}`);
             setNativeImageUrl(null);
+            setRagImageUrl(null);
           } else {
-            const nextImageUrl = data.nativeImageUrl ?? null;
+            const nextNativeImageUrl = data.nativeImageUrl ?? null;
+            const nextRagImageUrl = data.ragImageUrl ?? null;
             // Decode image before phase swap to avoid jank when the complete view mounts.
-            if (nextImageUrl) {
+            if (nextNativeImageUrl) {
               const img = new Image();
-              img.src = nextImageUrl;
+              img.src = nextNativeImageUrl;
               if (typeof img.decode === "function") {
                 await img.decode().catch(() => undefined);
               } else {
@@ -173,19 +206,33 @@ export default function Home() {
                 });
               }
             }
-            setNativeImageUrl(nextImageUrl);
+            if (nextRagImageUrl) {
+              const img = new Image();
+              img.src = nextRagImageUrl;
+              if (typeof img.decode === "function") {
+                await img.decode().catch(() => undefined);
+              } else {
+                await new Promise<void>((resolve) => {
+                  img.onload = () => resolve();
+                  img.onerror = () => resolve();
+                });
+              }
+            }
+            setNativeImageUrl(nextNativeImageUrl);
+            setRagImageUrl(nextRagImageUrl);
           }
         } catch (e) {
           if ((e as Error).name === "AbortError") return;
           setError(e instanceof Error ? e.message : "Request failed");
           setNativeImageUrl(null);
+          setRagImageUrl(null);
         } finally {
           setPhase("complete");
         }
       })();
       return () => controller.abort();
     }
-  }, [phase]);
+  }, [phase, ragContext]);
 
   useEffect(() => {
     if (phase === "routing" || phase === "rendering") {
@@ -198,6 +245,8 @@ export default function Home() {
 
   const isProcessing = phase === "routing" || phase === "rendering";
   const showStatusText = isProcessing && showLoadingText;
+  const showAboutLink = phase === "idle" || (phase === "complete" && !isResetting);
+  const isCompleteView = phase === "complete" && !isResetting;
 
   useEffect(() => {
     if (phase === "complete" && !confettiFired.current) {
@@ -236,6 +285,8 @@ export default function Home() {
     if (!prompt.trim() || phase !== "idle") return;
     currentPromptRef.current = prompt.trim();
     setNativeImageUrl(null);
+    setRagImageUrl(null);
+    setRagContext("");
     setError(null);
     setPhase("routing");
   };
@@ -245,7 +296,7 @@ export default function Home() {
     doSubmit();
   };
 
-  const openImageInNewTab = (url: string, _label: string) => {
+  const openImageInNewTab = (url: string) => {
     const anchor = document.createElement("a");
     anchor.href = url;
     anchor.target = "_blank";
@@ -263,7 +314,7 @@ export default function Home() {
       bytes[i] = binary.charCodeAt(i);
     }
     const blobUrl = URL.createObjectURL(new Blob([bytes], { type: mimeType }));
-    openImageInNewTab(blobUrl, "image");
+    openImageInNewTab(blobUrl);
     setTimeout(() => URL.revokeObjectURL(blobUrl), 30000);
   };
 
@@ -301,6 +352,8 @@ export default function Home() {
       setPrompt("");
       setPhase("idle");
       setNativeImageUrl(null);
+      setRagImageUrl(null);
+      setRagContext("");
       setError(null);
       setIsResetting(false);
       resetTimer.current = null;
@@ -309,13 +362,30 @@ export default function Home() {
 
   return (
     <main className="relative h-screen w-screen overflow-hidden text-white">
-      <div className="tech-bg-gradients absolute inset-0 z-0" />
-      <div className="tech-bg-dots absolute inset-0 z-0" />
-      <div className="tech-bg-layer absolute inset-0 z-0" />
-      <div className="tech-noise absolute inset-0 z-0" />
-      <div className="tech-vignette absolute inset-0 z-0" />
+      <motion.div
+        className="absolute inset-0 z-10"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
+      >
+        <AmbientGlow phase={phase} />
+      </motion.div>
 
-      <AmbientGlow phase={phase} />
+      {showAboutLink && (
+        <motion.div
+          className="absolute right-5 top-5 z-30 sm:right-7 sm:top-6"
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.25 }}
+        >
+          <Link
+            href="/about"
+            className="inline-flex items-center rounded border border-white/18 bg-black/35 px-3 py-1.5 text-xs font-medium tracking-[0.08em] text-white/80 transition hover:border-white/30 hover:bg-black/45 hover:text-white"
+          >
+            About
+          </Link>
+        </motion.div>
+      )}
 
       <motion.div
         className="absolute inset-x-0 top-[12%] z-20 text-center"
@@ -323,9 +393,18 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="text-[15px] font-semibold tracking-[0.1em] text-white [text-shadow:0_0_10px_rgba(255,255,255,0.18)] sm:text-[17px]">
-          RAG for Image Generation
-        </h1>
+        <AnimatePresence mode="wait">
+          <motion.h1
+            key={isCompleteView ? "complete-title" : "home-title"}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            transition={{ duration: 0.2 }}
+            className="text-lg font-semibold tracking-[0.1em] text-white [text-shadow:0_0_10px_rgba(255,255,255,0.18)] sm:text-xl"
+          >
+            {isCompleteView ? "Generation Complete" : "RAG for Image Generation"}
+          </motion.h1>
+        </AnimatePresence>
       </motion.div>
 
       <section className="relative z-20 flex h-full w-full flex-col items-center justify-center px-6">
@@ -346,7 +425,7 @@ export default function Home() {
                 exit={{ opacity: 0, y: -24 }}
                 transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               >
-                <div className="relative min-h-[120px] overflow-hidden rounded-[3px] border border-white/12 bg-[#1e1f24d9] shadow-[0_0_0_1px_rgba(139,61,255,0.1)_inset,0_0_20px_rgba(139,61,255,0.16)]">
+                <div className="relative min-h-[120px] overflow-hidden rounded border border-white/18 bg-black/35">
                 <textarea
                   value={prompt}
                   onChange={(event) => setPrompt(event.target.value)}
@@ -414,8 +493,10 @@ export default function Home() {
                 )}
                 <div className="grid w-full grid-cols-1 gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <div className="text-center text-sm font-medium tracking-[0.06em] text-amber-400">Native</div>
-                    <div className="relative flex aspect-square w-full min-h-[340px] max-h-[26rem] items-center justify-center overflow-hidden rounded border border-white/14 bg-black/28 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_20px_rgba(139,61,255,0.2)]">
+                    <div className="text-center text-sm font-semibold tracking-[0.08em] text-amber-300">
+                      Native
+                    </div>
+                    <div className="relative flex aspect-square w-full min-h-[340px] max-h-[26rem] items-center justify-center overflow-hidden rounded border border-amber-300/33 bg-black/42 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_0_1px_rgba(252,211,77,0.12)_inset,0_0_16px_rgba(251,191,36,0.17),0_0_28px_rgba(139,61,255,0.12)]">
                       {nativeImageUrl ? (
                         <img
                           src={nativeImageUrl}
@@ -431,10 +512,10 @@ export default function Home() {
                           nativeImageUrl
                             ? nativeImageUrl.startsWith("data:")
                               ? openDataUrlImageInNewTab(nativeImageUrl)
-                              : openImageInNewTab(nativeImageUrl, "Native")
+                              : openImageInNewTab(nativeImageUrl)
                             : openPlaceholderInNewTab("IMAGE PLACEHOLDER A")
                         }
-                        className="absolute right-[3px] top-2 h-8 w-8 bg-transparent text-white/75 transition hover:text-white"
+                        className="absolute right-[3px] top-2 h-8 w-8 bg-transparent text-amber-100/75 transition hover:text-amber-50"
                         aria-label="Open image in new tab"
                         title="Open image in new tab"
                       >
@@ -456,13 +537,29 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <div className="text-center text-sm font-semibold tracking-[0.06em] text-white/85">With RAG</div>
-                    <div className="relative flex aspect-square w-full min-h-[340px] max-h-[26rem] items-center justify-center rounded border border-white/14 bg-black/28 text-sm tracking-[0.08em] text-white/65 shadow-[0_0_20px_rgba(139,61,255,0.2)]">
-                      IMAGE PLACEHOLDER B
+                    <div className="text-center text-sm font-semibold tracking-[0.08em] text-cyan-200">
+                      With RAG
+                    </div>
+                    <div className="relative flex aspect-square w-full min-h-[340px] max-h-[26rem] items-center justify-center rounded border border-cyan-300/45 bg-black/42 text-sm tracking-[0.08em] text-cyan-50/75 shadow-[0_0_0_1px_rgba(103,232,249,0.22)_inset,0_0_28px_rgba(34,211,238,0.32),0_0_52px_rgba(79,70,229,0.28)]">
+                      {ragImageUrl ? (
+                        <img
+                          src={ragImageUrl}
+                          alt="Generated image with retrieved context"
+                          className="h-full w-full object-contain"
+                        />
+                      ) : (
+                        <span>IMAGE PLACEHOLDER B</span>
+                      )}
                     <button
                       type="button"
-                      onClick={() => openPlaceholderInNewTab("IMAGE PLACEHOLDER B")}
-                      className="absolute right-[3px] top-2 h-8 w-8 bg-transparent text-white/75 transition hover:text-white"
+                      onClick={() =>
+                        ragImageUrl
+                          ? ragImageUrl.startsWith("data:")
+                            ? openDataUrlImageInNewTab(ragImageUrl)
+                            : openImageInNewTab(ragImageUrl)
+                          : openPlaceholderInNewTab("IMAGE PLACEHOLDER B")
+                      }
+                      className="absolute right-[3px] top-2 h-8 w-8 bg-transparent text-cyan-100/75 transition hover:text-cyan-50"
                       aria-label="Open image B in new tab"
                       title="Open image B in new tab"
                     >
