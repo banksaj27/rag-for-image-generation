@@ -41,8 +41,9 @@ function GlowLayer({
   opacityIdle: number;
 }) {
   const isActive = phase === targetPhase || (targetPhase === "idle" && phase === "complete");
-  const isIdlePulse = isActive && targetPhase === "idle";
-  const isProgressPulse = isActive && (targetPhase === "routing" || targetPhase === "rendering");
+  const isBreathing =
+    isActive &&
+    (targetPhase === "idle" || targetPhase === "routing" || targetPhase === "rendering");
   const glowA = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.34 : 0.26})`;
   const glowB = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.2 : 0.14})`;
   const glowC = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${targetPhase === "idle" ? 0.1 : 0.07})`;
@@ -53,20 +54,12 @@ function GlowLayer({
       style={{ transform: "translateZ(0)", backfaceVisibility: "hidden" }}
       initial={false}
       animate={{
-        opacity: isIdlePulse
-          ? [0.64, 1, 0.64]
-          : isProgressPulse
-            ? [0.58, 0.88, 0.58]
-            : isActive
-              ? opacityIdle
-              : 0,
+        opacity: isBreathing ? [0.64, 1, 0.64] : isActive ? opacityIdle : 0,
       }}
       transition={
-        isIdlePulse
+        isBreathing
           ? { duration: 8.2, repeat: Infinity, ease: [0.4, 0, 0.6, 1], times: [0, 0.5, 1] }
-          : isProgressPulse
-            ? { duration: 7.2, repeat: Infinity, ease: "easeInOut", times: [0, 0.5, 1] }
-            : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
+          : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
       }
     >
       <motion.div
@@ -77,17 +70,13 @@ function GlowLayer({
           transform: "translateZ(0)",
         }}
         animate={{
-          scale: isIdlePulse
-            ? [1, 1.035, 1.075, 1.035, 1]
-            : isProgressPulse
-              ? [1, 1.02, 1.048, 1.02, 1]
-              : 1.02,
+          scale: isBreathing ? [1, 1.035, 1.075, 1.035, 1] : 1.02,
         }}
         transition={{
-          duration: isProgressPulse ? 7.2 : 9,
-          repeat: isProgressPulse || isIdlePulse ? Infinity : 0,
-          ease: isProgressPulse ? "easeInOut" : [0.4, 0, 0.6, 1],
-          times: isProgressPulse || isIdlePulse ? [0, 0.25, 0.5, 0.75, 1] : undefined,
+          duration: 9,
+          repeat: isBreathing ? Infinity : 0,
+          ease: [0.4, 0, 0.6, 1],
+          times: isBreathing ? [0, 0.25, 0.5, 0.75, 1] : undefined,
         }}
       />
       <motion.div
@@ -98,20 +87,12 @@ function GlowLayer({
           transform: "translateZ(0)",
         }}
         animate={{
-          opacity: isIdlePulse
-            ? [0.24, 0.5, 0.68, 0.5, 0.24]
-            : isProgressPulse
-              ? [0.2, 0.42, 0.58, 0.42, 0.2]
-              : isActive
-                ? 0.4
-                : 0,
+          opacity: isBreathing ? [0.24, 0.5, 0.68, 0.5, 0.24] : isActive ? 0.4 : 0,
         }}
         transition={
-          isIdlePulse
+          isBreathing
             ? { duration: 7.6, repeat: Infinity, ease: [0.4, 0, 0.6, 1], times: [0, 0.25, 0.5, 0.75, 1] }
-            : isProgressPulse
-              ? { duration: 7.2, repeat: Infinity, ease: "easeInOut", times: [0, 0.25, 0.5, 0.75, 1] }
-              : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
+            : { duration: 1.4, ease: [0.22, 1, 0.36, 1] }
         }
       />
     </motion.div>
